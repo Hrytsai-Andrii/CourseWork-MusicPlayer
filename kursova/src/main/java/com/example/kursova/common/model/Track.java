@@ -7,12 +7,11 @@ import java.io.Serializable;
 import java.util.Objects;
 
 public class Track implements Visitable, Serializable {
-
     private int trackID;
     private String title;
     private String artist;
     private String album;
-    private double duration; // Тривалість у секундах або хвилинах (згідно з діаграмою тип double)
+    private double duration; 
     private String filePath;
 
     public Track() {
@@ -26,8 +25,7 @@ public class Track implements Visitable, Serializable {
         this.duration = duration;
         this.filePath = filePath;
     }
-
-
+    
     public int getTrackID() {
         return trackID;
     }

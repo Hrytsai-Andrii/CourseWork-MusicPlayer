@@ -22,7 +22,6 @@ public class PlaylistService {
     }
 
     public void updatePlaylist(Playlist playlist) {
-        // Логіка оновлення вмісту плейлиста в БД
         playlistRepository.update(playlist);
     }
 

@@ -19,7 +19,6 @@ public class MusicSystemFacade {
     public MusicSystemFacade() {
         this.netClient = new NetworkClient();
 
-        // --- 1. PROXY USER SERVICE ---
         this.userService = new UserService(null) {
             @Override
             public User login(String email, String password) {
@@ -33,16 +32,14 @@ public class MusicSystemFacade {
                 return resp.isSuccess() ? (User) resp.getData() : null;
             }
 
-            // --- ВИПРАВЛЕННЯ ПОМИЛКИ: Додано цей метод ---
             @Override
             public User getUserByID(int id) {
-                // Відправляємо запит на сервер замість звернення до локальної БД (якої немає)
+                
                 NetworkResponse resp = netClient.sendRequest(new NetworkRequest("GET_USER", id));
                 return resp.isSuccess() ? (User) resp.getData() : null;
             }
         };
 
-        // --- 2. PROXY TRACK SERVICE ---
         this.trackService = new TrackService(null) {
             @Override
             public List<Track> getAllTracks(int userId) {
@@ -77,7 +74,6 @@ public class MusicSystemFacade {
             }
         };
 
-        // --- 3. PROXY PLAYLIST SERVICE ---
         this.playlistService = new PlaylistService(null) {
             @Override
             public List<Playlist> getAllPlaylists(int userId) {
@@ -112,11 +108,9 @@ public class MusicSystemFacade {
                 return resp.isSuccess() ? (Playlist) resp.getData() : null;
             }
         };
-
-        // Ініціалізація плеєра з проксі-сервісами
+        
         this.musicPlayer = new MusicPlayer(userService, trackService, playlistService);
-
-        // Тепер цей виклик спрацює коректно, бо він піде через мережу
+        
         User defaultUser = userService.getUserByID(1);
         if (defaultUser != null) this.musicPlayer.loginUser(1);
     }
@@ -139,7 +133,7 @@ public class MusicSystemFacade {
     }
 
     public void logout() {
-        musicPlayer.stop(); // Зупиняємо відтворення
+        musicPlayer.stop(); 
         User defaultUser = userService.getUserByID(1);
         if (defaultUser != null) {
             musicPlayer.loginUser(defaultUser.getUserID());
@@ -165,7 +159,7 @@ public class MusicSystemFacade {
     }
 
     public void saveState(int userId, PlayerMemento memento) {
-        // Передаємо масив об'єктів, як очікує сервер (ClientHandler рядок 888)
+        
         netClient.sendRequest(new NetworkRequest("SAVE_STATE", new Object[]{userId, memento}));
     }
 

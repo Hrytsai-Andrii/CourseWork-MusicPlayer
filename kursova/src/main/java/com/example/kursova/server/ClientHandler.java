@@ -36,25 +36,19 @@ public class ClientHandler extends Thread {
     @Override
     public void run() {
         try (
-                // Потоки введення/виведення об'єктів
                 ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 ObjectInputStream in = new ObjectInputStream(socket.getInputStream())
         ) {
-            // Читаємо запит від клієнта
             Object inputObject = in.readObject();
             if (inputObject instanceof NetworkRequest) {
                 NetworkRequest request = (NetworkRequest) inputObject;
-
-                // Обробляємо запит і отримуємо відповідь
                 NetworkResponse response = handleRequest(request);
-
-                // Відправляємо відповідь клієнту
                 out.writeObject(response);
                 out.flush();
             }
         } catch (Exception e) {
             System.err.println("Помилка обробки клієнта: " + e.getMessage());
-            // e.printStackTrace(); // Розкоментувати для дебагу
+            
         } finally {
             try {
                 socket.close();
@@ -72,21 +66,19 @@ public class ClientHandler extends Thread {
 
         try {
             switch (command) {
-                // --- АВТОРИЗАЦІЯ ---
                 case "LOGIN":
-                    String[] loginData = (String[]) payload; // [email, password]
-                    User user = userService.login(loginData[0], loginData[1]);// [cite: 106]
+                    String[] loginData = (String[]) payload; 
+                    User user = userService.login(loginData[0], loginData[1]);
                     return new NetworkResponse(user != null, user);
 
                 case "REGISTER":
-                    String[] regData = (String[]) payload; // [name, email, password]
-                    User newUser = userService.register(regData[0], regData[1], regData[2]);// [cite: 109]
+                    String[] regData = (String[]) payload; 
+                    User newUser = userService.register(regData[0], regData[1], regData[2]);
                     return new NetworkResponse(newUser != null, newUser);
 
-                // --- ТРЕКИ ---
                 case "GET_USER_TRACKS":
                     int userId = (int) payload;
-                    List<Track> tracks = trackService.getAllTracks(userId);// [cite: 114]
+                    List<Track> tracks = trackService.getAllTracks(userId);
                     return new NetworkResponse(true, tracks);
 
                 case "ADD_TRACK":
@@ -97,39 +89,34 @@ public class ClientHandler extends Thread {
                     if (track.getTrackID() != 0) {
                         trackService.linkTrackToUser(trackOwnerId, track.getTrackID());
                     }
-
                     return new NetworkResponse(true, track);
 
                 case "GET_USER_PLAYLISTS":
                     int pUserId = (int) payload;
-                    List<Playlist> playlists = playlistService.getAllPlaylists(pUserId);// [cite: 115]
+                    List<Playlist> playlists = playlistService.getAllPlaylists(pUserId);
                     return new NetworkResponse(true, playlists);
 
                 case "CREATE_PLAYLIST":
                     Playlist pl = (Playlist) payload;
-                    playlistService.createPlaylist(pl);// [cite: 78]
-                    // Повертаємо оновлений плейлист (з ID)
+                    playlistService.createPlaylist(pl);
                     return new NetworkResponse(true, pl);
 
                 case "LINK_PLAYLIST_USER":
-                    // Очікуємо int[]{userId, playlistId}
                     int[] linkData = (int[]) payload;
-                    playlistService.linkPlaylistToUser(linkData[0], linkData[1]);// [cite: 78]
+                    playlistService.linkPlaylistToUser(linkData[0], linkData[1]);
                     return new NetworkResponse(true, null);
 
-                // --- СТАН (MEMENTO) ---
+                
                 case "SAVE_STATE":
-                    // Очікуємо об'єкт, що містить userId і memento
-                    // Наприклад, Object[]{userId, memento}
                     Object[] stateData = (Object[]) payload;
-                    stateRepository.saveState((int) stateData[0], (PlayerMemento) stateData[1]);// [cite: 95]
+                    stateRepository.saveState((int) stateData[0], (PlayerMemento) stateData[1]);
                     return new NetworkResponse(true, null);
 
                 case "LOAD_STATE":
                     int sUserId = (int) payload;
-                    PlayerMemento memento = stateRepository.loadState(sUserId);// [cite: 92]
+                    PlayerMemento memento = stateRepository.loadState(sUserId);
                     return new NetworkResponse(true, memento);
-                // У метод handleRequest додайте:
+                
 
                 case "GET_TRACK":
                     int tId = (int) payload;

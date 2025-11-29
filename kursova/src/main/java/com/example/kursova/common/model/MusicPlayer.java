@@ -18,14 +18,8 @@ public class MusicPlayer {
     private User currentUser;
     private double startAtTime = 0.0;
     private Runnable onTrackChanged;
-
-    // 2. Додайте цей метод (сеттер) десь внизу класу
-    public void setOnTrackChanged(Runnable callback) {
-        this.onTrackChanged = callback;
-    }
-
-    // --- НОВЕ ПОЛЕ ---
     private MediaPlayer mediaPlayer;
+    private boolean isShuffleGlobal = false;
 
     private UserService userService;
     private TrackService trackService;
@@ -92,8 +86,6 @@ public class MusicPlayer {
         }
     }
 
-    private boolean isShuffleGlobal = false; // Глобальний стан плеєра
-
     public void setShuffle(boolean enable) {
         this.isShuffleGlobal = enable;
         if (currentPlayable != null) {
@@ -124,7 +116,7 @@ public class MusicPlayer {
 
         if (mediaPlayer != null) {
             mediaPlayer.stop();
-            mediaPlayer.dispose(); // Очищення пам'яті
+            mediaPlayer.dispose(); 
             mediaPlayer = null;
         }
     }
@@ -190,7 +182,6 @@ public class MusicPlayer {
         stop();
         this.currentTrack = track;
 
-        // ВАЖЛИВО: Синхронізуємо ітератор з обраним треком
         if (currentPlayable != null) {
             currentPlayable.setCurrentTrack(track.getTrackID());
         }
@@ -210,19 +201,15 @@ public class MusicPlayer {
         }
 
         try {
-            // --- ЗМІНА ПОЧИНАЄТЬСЯ ТУТ ---
-            // Отримуємо URI через конвертер. Якщо це FLAC, отримаємо посилання на temp.wav
             String mediaSource = AudioConverter.getPlayableURI(currentTrack.getFilePath());
 
             if (mediaSource == null) {
                 System.err.println("Не вдалося завантажити файл: " + currentTrack.getFilePath());
-                next(); // Пропускаємо битий файл
+                next(); 
                 return;
             }
 
             Media media = new Media(mediaSource);
-            // --- ЗМІНА ЗАКІНЧУЄТЬСЯ ТУТ ---
-
             mediaPlayer = new MediaPlayer(media);
             mediaPlayer.setVolume(this.volume / 100.0);
 
@@ -246,11 +233,10 @@ public class MusicPlayer {
 
         } catch (Exception e) {
             e.printStackTrace();
-            next(); // Пропускаємо трек при помилці
+            next(); 
         }
     }
 
-    // 3. Оновіть saveState
     public PlayerMemento saveState() {
         int trackId = (currentTrack != null) ? currentTrack.getTrackID() : -1;
 
@@ -261,16 +247,13 @@ public class MusicPlayer {
             sourceId = ((Playlist) currentPlayable).getPlaylistID();
         }
 
-        // Отримуємо поточний час плеєра
         double currentTime = 0.0;
         if (mediaPlayer != null) {
             currentTime = mediaPlayer.getCurrentTime().toSeconds();
         }
-
         return new PlayerMemento(this.volume, this.isShuffleGlobal, this.isRepeat, trackId, sourceType, sourceId, currentTime);
     }
 
-    // 4. Оновіть restoreState
     public void restoreState(PlayerMemento memento) {
         if (memento == null) return;
 
@@ -278,7 +261,6 @@ public class MusicPlayer {
         this.setShuffle(memento.isShuffle());
         if (this.isRepeat != memento.isRepeat()) this.toggleRepeat();
 
-        // Відновлюємо джерело (Playlist або Library)
         if (memento.getSourceType() == 1) {
             Playlist pl = playlistService.getPlaylistByID(memento.getSourceId());
             if (pl != null) this.setPlayableSource(pl);
@@ -290,15 +272,18 @@ public class MusicPlayer {
             this.setPlayableSource(lib);
         }
 
-        // Зберігаємо час, з якого треба почати
         this.startAtTime = memento.getCurrentTime();
 
         if (memento.getCurrentTrackId() != -1) {
             Track t = trackService.getTrackByID(memento.getCurrentTrackId());
             if (t != null) {
                 this.playTrack(t);
-                this.pause(); // Ставимо на паузу, щоб не грало само, але час вже встановлений у startAtTime
+                this.pause(); 
             }
         }
+    }
+
+    public void setOnTrackChanged(Runnable callback) {
+        this.onTrackChanged = callback;
     }
 }

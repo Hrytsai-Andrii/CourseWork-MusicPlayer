@@ -6,8 +6,6 @@ import com.example.kursova.server.DatabaseConnection;
 import java.sql.*;
 
 public class StateRepository {
-    // com.example.kursova.server.repository.StateRepository
-
     public void saveState(int userId, PlayerMemento memento) {
         String sql = "INSERT OR REPLACE INTO playback_state (user_id, volume, is_shuffle, is_repeat, current_track_id, source_type, source_id, current_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseConnection.connect();
@@ -20,8 +18,7 @@ public class StateRepository {
             pstmt.setInt(5, memento.getCurrentTrackId());
             pstmt.setInt(6, memento.getSourceType());
             pstmt.setInt(7, memento.getSourceId());
-            pstmt.setDouble(8, memento.getCurrentTime()); // <-- Зберігаємо час
-
+            pstmt.setDouble(8, memento.getCurrentTime());
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -44,7 +41,7 @@ public class StateRepository {
                         rs.getInt("current_track_id"),
                         rs.getInt("source_type"),
                         rs.getInt("source_id"),
-                        rs.getDouble("current_time") // <-- Завантажуємо час
+                        rs.getDouble("current_time") 
                 );
             }
         } catch (SQLException e) {

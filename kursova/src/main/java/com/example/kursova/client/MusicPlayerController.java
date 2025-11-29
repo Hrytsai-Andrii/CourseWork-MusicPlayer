@@ -29,23 +29,16 @@ public class MusicPlayerController {
     private Caretaker caretaker = new Caretaker();
 
     private final MusicSystemFacade systemFacade;
-    // private StateRepository stateRepository; // ВИДАЛЕНО: Порушувало архітектуру
 
     private Library mainLibrary;
 
     public MusicPlayerController(MusicPlayerView view) {
         this.view = view;
-
-        // Ініціалізація фасаду (який тепер використовує NetworkClient)
         this.systemFacade = new MusicSystemFacade();
         this.musicPlayer = systemFacade.getPlayer();
-
-        // ВИПРАВЛЕННЯ 3: Слухач для автоматичного оновлення UI при зміні треку
         this.musicPlayer.setOnTrackChanged(() -> updateStatusUI());
 
         attachEventHandlers();
-
-        // Оновлення даних при старті (загорнуто в runLater всередині методів)
         refreshData();
         loadLastState();
     }
@@ -111,7 +104,6 @@ public class MusicPlayerController {
         if (view.getRegisterBtn() != null) view.getRegisterBtn().setOnAction(e -> handleRegister());
         if (view.getLogoutBtn() != null) view.getLogoutBtn().setOnAction(e -> handleLogout());
 
-        // Налаштування таблиці (ContextMenu)
         view.getLibraryTable().setRowFactory(tv -> {
             TableRow<Track> row = new TableRow<>();
             ContextMenu contextMenu = new ContextMenu();
@@ -160,7 +152,7 @@ public class MusicPlayerController {
             result.ifPresent(newName -> {
                 if (!newName.trim().isEmpty()) {
                     playlist.setName(newName);
-                    systemFacade.getPlaylistService().updatePlaylist(playlist); // Мережевий виклик
+                    systemFacade.getPlaylistService().updatePlaylist(playlist);
                     refreshData();
                 }
             });
@@ -174,7 +166,7 @@ public class MusicPlayerController {
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 if (musicPlayer.getCurrentUser() != null) musicPlayer.stop();
-                systemFacade.getPlaylistService().deletePlaylist(playlist.getPlaylistID()); // Мережевий виклик
+                systemFacade.getPlaylistService().deletePlaylist(playlist.getPlaylistID());
                 refreshData();
             }
         });
@@ -182,8 +174,6 @@ public class MusicPlayerController {
         view.setTrackLoader(playlist -> {
             List<Track> tracksInPlaylist = new ArrayList<>();
             for (Integer trackId : playlist.getTracks()) {
-                // Виклик може бути повільним, але trackLoader викликається при кліку в UI.
-                // В ідеалі - кешувати, але тут залишаємо як є.
                 Track t = systemFacade.getTrackService().getTrackByID(trackId);
                 if (t != null) tracksInPlaylist.add(t);
             }
@@ -197,7 +187,6 @@ public class MusicPlayerController {
         });
 
         view.setOnAddTrackToPlaylist(playlist -> {
-            // Отримуємо треки (мережевий виклик), треба бути обережним з UI
             List<Track> allTracks = systemFacade.getCurrentUserTracks();
             Track selectedTrack = view.showTrackSelectionDialog(allTracks);
 
@@ -231,13 +220,8 @@ public class MusicPlayerController {
 
             Optional<ButtonType> result = alert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                // 1. Видаляємо ID треку з локального об'єкта плейлиста
                 playlist.removeTrack(track.getTrackID());
-
-                // 2. Відправляємо оновлений плейлист на сервер (це оновить зв'язки в БД)
                 systemFacade.getPlaylistService().updatePlaylist(playlist);
-
-                // 3. Оновлюємо інтерфейс
                 refreshData();
             }
         });
@@ -246,13 +230,13 @@ public class MusicPlayerController {
     private void refreshData() {
         if (musicPlayer.getCurrentUser() == null) return;
 
-        // ВИПРАВЛЕННЯ 3: Всі зміни UI виконуються в головному потоці JavaFX
+
         Platform.runLater(() -> {
             view.updateAuthUI(musicPlayer.getCurrentUser());
         });
 
-        // Отримуємо дані (це блокуючі виклики мережі, в реальному додатку краще Task<Void>,
-        // але для простоти курсової виконуємо тут, а UI оновлюємо в runLater)
+
+
         List<Track> tracks = systemFacade.getCurrentUserTracks();
 
         Platform.runLater(() -> {
@@ -270,7 +254,7 @@ public class MusicPlayerController {
     }
 
     private void updateStatusUI() {
-        // ВИПРАВЛЕННЯ 3: Гарантія виконання в UI потоці
+
         Platform.runLater(() -> {
             if (musicPlayer.isPlaying()) {
                 view.getStatusLabel().setText("Відтворення");
@@ -407,21 +391,21 @@ public class MusicPlayerController {
     }
 
     private void saveTrackWithDuration(Track track) {
-        // Створюємо завдання (Task) для виконання у фоновому потоці
+
         javafx.concurrent.Task<String> conversionTask = new javafx.concurrent.Task<>() {
             @Override
             protected String call() throws Exception {
-                // Цей код виконується НЕ в UI потоці, тому інтерфейс не зависне
+
                 return AudioConverter.getPlayableURI(track.getFilePath());
             }
         };
 
-        // Що робити, коли конвертація успішно завершилась
+
         conversionTask.setOnSucceeded(event -> {
-            String uri = conversionTask.getValue(); // Отримуємо результат
+            String uri = conversionTask.getValue();
 
             if (uri == null) {
-                // Якщо помилка конвертації - зберігаємо як є (без тривалості або 0.0)
+
                 saveTrackToDB(track);
                 return;
             }
@@ -433,7 +417,7 @@ public class MusicPlayerController {
                 tempPlayer.setOnReady(() -> {
                     track.setDuration(media.getDuration().toSeconds());
                     tempPlayer.dispose();
-                    saveTrackToDB(track); // Зберігаємо вже з тривалістю
+                    saveTrackToDB(track);
                 });
 
                 tempPlayer.setOnError(() -> {
@@ -448,19 +432,19 @@ public class MusicPlayerController {
             }
         });
 
-        // Що робити, якщо під час конвертації сталася помилка
+
         conversionTask.setOnFailed(event -> {
             Throwable e = conversionTask.getException();
             System.err.println("Помилка у фоновому потоці конвертації: " + e.getMessage());
             saveTrackToDB(track);
         });
 
-        // Запускаємо завдання в новому потоці
+
         new Thread(conversionTask).start();
     }
 
     private void saveTrackToDB(Track track) {
-        // Використовуємо фасад для відправки треку на сервер
+
         systemFacade.addTrackToLibrary(track);
         refreshData();
     }
@@ -485,7 +469,7 @@ public class MusicPlayerController {
 
         dialog.showAndWait().ifPresent(playlist -> {
             playlist.addTrack(selectedTrack.getTrackID());
-            systemFacade.getPlaylistService().updatePlaylist(playlist); // Мережевий запит
+            systemFacade.getPlaylistService().updatePlaylist(playlist);
             refreshData();
         });
     }
@@ -494,10 +478,10 @@ public class MusicPlayerController {
         String name = view.getNewPlaylistNameField().getText();
         if (!name.isEmpty()) {
             Playlist pl = new Playlist(0, name);
-            // 1. Створюємо плейлист на сервері
+
             Playlist createdPl = systemFacade.getPlaylistService().createPlaylist(pl);
 
-            // 2. Лінкуємо до юзера (якщо сервер не зробив цього автоматично, але зазвичай це окремий крок)
+
             if (musicPlayer.getCurrentUser() != null && createdPl != null) {
                 systemFacade.getPlaylistService().linkPlaylistToUser(
                         musicPlayer.getCurrentUser().getUserID(),
@@ -539,7 +523,7 @@ public class MusicPlayerController {
 
         Optional<Track> result = dialog.showAndWait();
         result.ifPresent(updatedTrack -> {
-            systemFacade.getTrackService().updateTrack(updatedTrack); // Мережевий запит
+            systemFacade.getTrackService().updateTrack(updatedTrack);
             refreshData();
         });
     }
@@ -556,7 +540,7 @@ public class MusicPlayerController {
             if (musicPlayer.getCurrentTrack() != null && musicPlayer.getCurrentTrack().equals(track)) {
                 musicPlayer.stop();
             }
-            systemFacade.getTrackService().deleteTrack(track.getTrackID()); // Мережевий запит
+            systemFacade.getTrackService().deleteTrack(track.getTrackID());
             refreshData();
         }
     }
@@ -564,14 +548,14 @@ public class MusicPlayerController {
     private void loadLastState() {
         if (musicPlayer.getCurrentUser() == null) return;
 
-        // ВИПРАВЛЕНО: Виклик через фасад
+
         PlayerMemento savedState = systemFacade.loadState(musicPlayer.getCurrentUser().getUserID());
 
         if (savedState != null) {
             musicPlayer.restoreState(savedState);
             view.getVolumeSlider().setValue(savedState.getVolume());
 
-            // Оновлення стилів кнопок відповідно до стану
+
             if (savedState.isShuffle()) view.getShuffleBtn().setStyle("-fx-base: #b6e7c9;");
             else view.getShuffleBtn().setStyle("");
 
@@ -585,7 +569,7 @@ public class MusicPlayerController {
     private void saveCurrentUserState() {
         if (musicPlayer.getCurrentUser() != null) {
             PlayerMemento currentState = musicPlayer.saveState();
-            // ВИПРАВЛЕНО: Виклик через фасад
+
             systemFacade.saveState(musicPlayer.getCurrentUser().getUserID(), currentState);
         }
     }

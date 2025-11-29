@@ -12,11 +12,8 @@ public class ServerApp {
 
     public static void main(String[] args) {
         System.out.println(">>> Запуск сервера...");
-
-        // 1. Ініціалізація бази даних (створення таблиць)
         try {
-            // Використовуємо логіку з старого DatabaseConnection
-            DatabaseConnection.initSchema(); //// [cite: 99, 355]
+            DatabaseConnection.initSchema(); 
             System.out.println(">>> База даних ініціалізована.");
         } catch (Exception e) {
             System.err.println("!!! Помилка ініціалізації БД:");
@@ -24,28 +21,22 @@ public class ServerApp {
             return;
         }
 
-        // 2. Ініціалізація шарів (Repository -> Service)
-        // Створюємо об'єкти, які будуть обробляти логіку
-        UserRepository userRepo = new UserRepository(); // [cite: 101]
-        TrackRepository trackRepo = new TrackRepository(); // [cite: 102]
-        PlaylistRepository playlistRepo = new PlaylistRepository(); // [cite: 102]
-        StateRepository stateRepo = new StateRepository(); // [cite: 6]
+        UserRepository userRepo = new UserRepository(); 
+        TrackRepository trackRepo = new TrackRepository(); 
+        PlaylistRepository playlistRepo = new PlaylistRepository(); 
+        StateRepository stateRepo = new StateRepository(); 
 
-        UserService userService = new UserService(userRepo); // [cite: 102]
-        TrackService trackService = new TrackService(trackRepo); // [cite: 102]
-        PlaylistService playlistService = new PlaylistService(playlistRepo); // [cite: 103]
+        UserService userService = new UserService(userRepo); 
+        TrackService trackService = new TrackService(trackRepo); 
+        PlaylistService playlistService = new PlaylistService(playlistRepo); 
 
-        // 3. Запуск мережевого сервера
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println(">>> Сервер слухає порт " + PORT);
             System.out.println(">>> Очікування клієнтів...");
 
             while (true) {
-                // Блокується, поки не під'єднається клієнт
                 Socket clientSocket = serverSocket.accept();
                 System.out.println(">>> Нове підключення: " + clientSocket.getInetAddress());
-
-                // Створюємо новий потік для клієнта, передаючи йому сервіси
                 ClientHandler handler = new ClientHandler(
                         clientSocket,
                         userService,

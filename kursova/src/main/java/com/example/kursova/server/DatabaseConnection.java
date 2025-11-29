@@ -32,29 +32,25 @@ public class DatabaseConnection {
 
     public static void initSchema() {
         try (Connection conn = connect(); Statement stmt = conn.createStatement()) {
-
-            // 1. Треки з автоінкрементом
             stmt.execute("CREATE TABLE IF NOT EXISTS tracks (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " + // ЗМІНЕНО
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " + 
                     "title TEXT, " +
                     "artist TEXT, " +
                     "album TEXT, " +
                     "duration REAL, " +
                     "filepath TEXT)");
 
-            // 2. Плейлисти з автоінкрементом
             stmt.execute("CREATE TABLE IF NOT EXISTS playlists (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " + // ЗМІНЕНО
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " + 
                     "name TEXT)");
 
-            // ... таблиці зв'язків та юзерів залишаються без змін ...
             stmt.execute("CREATE TABLE IF NOT EXISTS playlist_tracks (" +
                     "playlist_id INTEGER, track_id INTEGER, " +
                     "FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE, " +
                     "FOREIGN KEY(track_id) REFERENCES tracks(id) ON DELETE CASCADE)");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " + // Юзери теж
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " + 
                     "name TEXT, email TEXT UNIQUE, password TEXT)");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS users_tracks (" +
@@ -70,6 +66,7 @@ public class DatabaseConnection {
                     "FOREIGN KEY(playlist_id) REFERENCES playlists(id) ON DELETE CASCADE)");
 
             stmt.execute("INSERT OR IGNORE INTO users (id, name, email, password) VALUES (1, 'Default User', 'default@mp.com', '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918')");
+
             stmt.execute("CREATE TABLE IF NOT EXISTS playback_state (" +
                     "user_id INTEGER PRIMARY KEY, " +
                     "volume INTEGER, " +
@@ -78,9 +75,8 @@ public class DatabaseConnection {
                     "current_track_id INTEGER, " +
                     "source_type INTEGER, " +
                     "source_id INTEGER, " +
-                    "current_time REAL, " + // <-- НОВА КОЛОНКА
+                    "current_time REAL, " + 
                     "FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE)");
-
         } catch (SQLException e) {
             e.printStackTrace();
         }

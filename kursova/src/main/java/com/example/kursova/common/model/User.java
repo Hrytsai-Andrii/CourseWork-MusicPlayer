@@ -11,15 +11,12 @@ public class User implements Serializable {
     private String name;
     private String email;
     private String password;
-    // settings видалено
-
     private List<Playlist> playlists;
 
     public User() {
         this.playlists = new ArrayList<>();
     }
 
-    // Оновлений конструктор без settings
     public User(int userID, String name, String email, String password) {
         this.userID = userID;
         this.name = name;

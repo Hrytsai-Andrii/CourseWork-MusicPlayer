@@ -26,31 +26,25 @@ public class MusicPlayerView {
 
     private BorderPane root;
 
-    // Верхня панель
     private Label statusLabel;
     private Label currentTrackLabel;
 
-    // Елементи авторизації
-    private Label userNameLabel; // Новий лейбл для імені
+    private Label userNameLabel; 
     private Button loginBtn;
     private Button registerBtn;
     private Button logoutBtn;
 
-    // Центральна панель
     private TableView<Track> libraryTable;
     private ListView<Playlist> playlistListView;
 
-    // Нижня панель (контроли)
     private Slider volumeSlider;
     private Button playBtn, pauseBtn, stopBtn, nextBtn, prevBtn;
     private Button repeatBtn, shuffleBtn;
 
-    // Кнопки дій
     private Button refreshBtn, playLibraryBtn, addFileBtn, addToPlaylistBtn;
     private Button createPlaylistBtn, playPlaylistBtn;
     private TextField newPlaylistNameField;
 
-    // Callbacks для Controller
     private Function<Playlist, List<Track>> trackLoader;
     private BiConsumer<Playlist, Track> onPlayTrackFromPlaylist;
     private Consumer<Playlist> onAddTrackToPlaylist;
@@ -71,16 +65,14 @@ public class MusicPlayerView {
         root = new BorderPane();
         root.setPadding(new Insets(10));
 
-        // --- ВЕРХНЯ ЧАСТИНА (Auth + Info) ---
+        
         VBox topContainer = new VBox(10);
         topContainer.setPadding(new Insets(0, 0, 10, 0));
         topContainer.setAlignment(Pos.CENTER);
 
-        // Панель авторизації (справа зверху)
         HBox authBox = new HBox(10);
         authBox.setAlignment(Pos.CENTER_RIGHT);
 
-        // Лейбл імені користувача
         userNameLabel = new Label();
         userNameLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #333; -fx-font-size: 14px; -fx-padding: 0 10 0 0;");
 
@@ -88,14 +80,12 @@ public class MusicPlayerView {
         registerBtn = new Button("Реєстрація");
         logoutBtn = new Button("Вихід");
 
-        // Стилізація кнопок
         loginBtn.setStyle("-fx-base: #3498db; -fx-text-fill: white; -fx-cursor: hand;");
         registerBtn.setStyle("-fx-base: #2ecc71; -fx-text-fill: white; -fx-cursor: hand;");
         logoutBtn.setStyle("-fx-base: #e74c3c; -fx-text-fill: white; -fx-cursor: hand;");
 
         authBox.getChildren().addAll(userNameLabel, loginBtn, registerBtn, logoutBtn);
 
-        // Інфо про трек
         currentTrackLabel = new Label("Немає активного треку");
         currentTrackLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
@@ -105,7 +95,6 @@ public class MusicPlayerView {
         topContainer.getChildren().addAll(authBox, currentTrackLabel, statusLabel);
         root.setTop(topContainer);
 
-        // --- ЦЕНТРАЛЬНА ЧАСТИНА (Tabs) ---
         TabPane tabPane = new TabPane();
         tabPane.getTabs().addAll(
                 new Tab("Бібліотека", createLibraryTab()),
@@ -114,47 +103,39 @@ public class MusicPlayerView {
         tabPane.getTabs().forEach(t -> t.setClosable(false));
         root.setCenter(tabPane);
 
-        // --- НИЖНЯ ЧАСТИНА (Controls) ---
         root.setBottom(createControlsBox());
     }
 
-    /**
-     * Оновлює видимість кнопок залежно від того, хто залогінений.
-     */
+    
     public void updateAuthUI(User currentUser) {
-        // Припускаємо, що ID 1 - це завжди Default User (Гість)
+        
         boolean isDefaultUser = (currentUser.getUserID() == 1);
 
         if (isDefaultUser) {
-            // --- РЕЖИМ ГОСТЯ ---
-            // Відображаємо: Вхід, Реєстрація
-            // Ховаємо: Ім'я, Вихід
-
-            userNameLabel.setVisible(false); userNameLabel.setManaged(false);
-            logoutBtn.setVisible(false);     logoutBtn.setManaged(false);
-
-            loginBtn.setVisible(true);       loginBtn.setManaged(true);
-            registerBtn.setVisible(true);    registerBtn.setManaged(true);
+            userNameLabel.setVisible(false);
+            userNameLabel.setManaged(false);
+            logoutBtn.setVisible(false);
+            logoutBtn.setManaged(false);
+            loginBtn.setVisible(true);
+            loginBtn.setManaged(true);
+            registerBtn.setVisible(true);
+            registerBtn.setManaged(true);
         } else {
-            // --- РЕЖИМ КОРИСТУВАЧА ---
-            // Відображаємо: Ім'я, Вхід, Вихід
-            // Ховаємо: Реєстрація
-
             userNameLabel.setText(currentUser.getName());
-            userNameLabel.setVisible(true);  userNameLabel.setManaged(true);
-
-            logoutBtn.setVisible(true);      logoutBtn.setManaged(true);
-            loginBtn.setVisible(true);       loginBtn.setManaged(true); // Залишаємо "Вхід" видимим за вашим бажанням
-
-            registerBtn.setVisible(false);   registerBtn.setManaged(false);
+            userNameLabel.setVisible(true);
+            userNameLabel.setManaged(true);
+            logoutBtn.setVisible(true);
+            logoutBtn.setManaged(true);
+            loginBtn.setVisible(true);
+            loginBtn.setManaged(true);
+            registerBtn.setVisible(false);
+            registerBtn.setManaged(false);
         }
     }
 
     private VBox createLibraryTab() {
         VBox box = new VBox(10);
         box.setPadding(new Insets(10));
-
-        // Кнопки керування бібліотекою
         HBox buttonBox = new HBox(10);
         playLibraryBtn = new Button("▶ Грати бібліотеку");
         playLibraryBtn.setStyle("-fx-base: #b6e7c9;");
@@ -164,8 +145,6 @@ public class MusicPlayerView {
         refreshBtn = new Button("🔄 Оновити");
 
         buttonBox.getChildren().addAll(playLibraryBtn, addFileBtn, addToPlaylistBtn, refreshBtn);
-
-        // Таблиця
         libraryTable = new TableView<>();
 
         TableColumn<Track, String> titleCol = new TableColumn<>("Назва");
@@ -219,12 +198,10 @@ public class MusicPlayerView {
             private boolean isExpanded = false;
 
             {
-                // Налаштування заголовка картки
                 cardHeader.setAlignment(Pos.CENTER_LEFT);
                 cardHeader.setPadding(new Insets(10));
                 cardHeader.setStyle("-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1); -fx-cursor: hand;");
 
-                // Налаштування колонок внутрішньої таблиці
                 TableColumn<Track, String> titleCol = new TableColumn<>("Назва");
                 titleCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().getTitle()));
 
@@ -241,17 +218,14 @@ public class MusicPlayerView {
                 innerTable.setVisible(false);
                 innerTable.setManaged(false);
 
-                // --- НОВЕ: Налаштування рядків (Контекстне меню + Подвійний клік) ---
                 innerTable.setRowFactory(tv -> {
                     TableRow<Track> row = new TableRow<>();
-
-                    // Контекстне меню для видалення
                     ContextMenu contextMenu = new ContextMenu();
                     MenuItem deleteItem = new MenuItem("Видалити з плейлиста");
 
                     deleteItem.setOnAction(event -> {
                         Track track = row.getItem();
-                        // getItem() повертає поточний Playlist цього ListCell
+                        
                         if (track != null && getItem() != null && onDeleteTrackFromPlaylist != null) {
                             onDeleteTrackFromPlaylist.accept(getItem(), track);
                         }
@@ -259,14 +233,12 @@ public class MusicPlayerView {
 
                     contextMenu.getItems().add(deleteItem);
 
-                    // Показуємо меню тільки якщо рядок не порожній
                     row.contextMenuProperty().bind(
                             javafx.beans.binding.Bindings.when(row.emptyProperty())
                                     .then((ContextMenu) null)
                                     .otherwise(contextMenu)
                     );
 
-                    // Обробка подвійного кліку для відтворення
                     row.setOnMouseClicked(event -> {
                         if (event.getClickCount() == 2 && (!row.isEmpty()) && event.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
                             Track selectedTrack = row.getItem();
@@ -292,7 +264,6 @@ public class MusicPlayerView {
                 } else {
                     cardHeader.getChildren().clear();
 
-                    // Іконка та назва
                     Label icon = new Label(isExpanded ? "📂" : "📁");
                     icon.setStyle("-fx-font-size: 24px; -fx-text-fill: #555;");
 
@@ -311,7 +282,6 @@ public class MusicPlayerView {
                     Region spacer = new Region();
                     HBox.setHgrow(spacer, Priority.ALWAYS);
 
-                    // Кнопки дій
                     Button editBtn = createIconButton("M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z", "#95a5a6", "#f39c12", e -> {
                         if (onEditPlaylist != null) onEditPlaylist.accept(item);
                     });
@@ -327,7 +297,6 @@ public class MusicPlayerView {
 
                     cardHeader.getChildren().addAll(icon, info, spacer, addBtn, editBtn, deleteBtn, arrow);
 
-                    // Логіка розгортання
                     cardHeader.setOnMouseClicked(event -> {
                         if (event.getTarget() instanceof Button || event.getTarget() instanceof SVGPath) return;
                         isExpanded = !isExpanded;
@@ -337,8 +306,6 @@ public class MusicPlayerView {
                     if (isExpanded) {
                         updateTableVisibility(item, icon, arrow);
                     }
-
-                    // (Старий обробник innerTable.setOnMouseClicked видалено, бо він перенесений в setRowFactory)
 
                     innerTable.setVisible(isExpanded);
                     innerTable.setManaged(isExpanded);
@@ -374,7 +341,6 @@ public class MusicPlayerView {
             }
         });
 
-        // Нижня панель створення плейлиста
         HBox createBox = new HBox(10);
         createBox.setAlignment(Pos.CENTER);
         createBox.setPadding(new Insets(15));
@@ -419,8 +385,6 @@ public class MusicPlayerView {
                 new Label("Vol:"), volumeSlider);
         return box;
     }
-
-    // --- Діалогові вікна ---
 
     public Track showTrackSelectionDialog(List<Track> allTracks) {
         Dialog<Track> dialog = new Dialog<>();
@@ -468,8 +432,6 @@ public class MusicPlayerView {
         alert.showAndWait();
     }
 
-    // --- Setters for Callbacks ---
-
     public void setTrackLoader(Function<Playlist, List<Track>> trackLoader) {
         this.trackLoader = trackLoader;
     }
@@ -497,8 +459,6 @@ public class MusicPlayerView {
     public void setOnDeleteTrackFromPlaylist(BiConsumer<Playlist, Track> callback) {
         this.onDeleteTrackFromPlaylist = callback;
     }
-
-    // --- Getters ---
 
     public TableView<Track> getLibraryTable() { return libraryTable; }
     public ListView<Playlist> getPlaylistListView() { return playlistListView; }

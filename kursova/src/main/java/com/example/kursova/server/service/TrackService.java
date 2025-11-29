@@ -35,7 +35,6 @@ public class TrackService {
     }
 
     public List<Track> getAllTracks(int userId) {
-        // Викликаємо специфічний метод для юзера
         return trackRepository.findAllByUserId(userId);
     }
 

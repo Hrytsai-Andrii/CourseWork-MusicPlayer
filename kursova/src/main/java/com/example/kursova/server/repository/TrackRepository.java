@@ -48,7 +48,6 @@ public class TrackRepository implements IRepository<Track> {
     @Override
     public void update(Track track) {
         if (track.getTrackID() == 0) {
-            // --- INSERT (Створення) ---
             String sql = "INSERT INTO tracks(title, artist, album, duration, filepath) VALUES(?, ?, ?, ?, ?)";
             try (Connection conn = DatabaseConnection.connect();
                  PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -63,13 +62,12 @@ public class TrackRepository implements IRepository<Track> {
                 if (affectedRows > 0) {
                     try (ResultSet rs = pstmt.getGeneratedKeys()) {
                         if (rs.next()) {
-                            track.setTrackID(rs.getInt(1)); // Встановлюємо згенерований ID об'єкту
+                            track.setTrackID(rs.getInt(1)); 
                         }
                     }
                 }
             } catch (SQLException e) { e.printStackTrace(); }
         } else {
-            // --- UPDATE (Оновлення існуючого) ---
             String sql = "UPDATE tracks SET title=?, artist=?, album=?, duration=?, filepath=? WHERE id=?";
             try (Connection conn = DatabaseConnection.connect();
                  PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -132,11 +130,9 @@ public class TrackRepository implements IRepository<Track> {
         } catch (SQLException e) { e.printStackTrace(); }
     }
 
-    // У файлі com/example/kursova/repository/TrackRepository.java
-
     public List<Track> findAllByUserId(int userId) {
         List<Track> tracks = new ArrayList<>();
-        // Запит об'єднує таблицю треків і таблицю зв'язків
+        
         String sql = "SELECT t.id, t.title, t.artist, t.album, t.duration, t.filepath " +
                 "FROM tracks t " +
                 "JOIN users_tracks ut ON t.id = ut.track_id " +
@@ -149,7 +145,6 @@ public class TrackRepository implements IRepository<Track> {
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
-                // Використовуємо існуючий метод маппінгу
                 tracks.add(mapRowToTrack(rs));
             }
         } catch (SQLException e) {

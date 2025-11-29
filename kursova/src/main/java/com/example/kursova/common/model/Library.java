@@ -8,23 +8,18 @@ import java.util.stream.Collectors;
 
 public class Library implements Playable {
     private List<Track> tracks;
-
-    // Використовуємо узагальнений ітератор для об'єктів Track
     private AudioIterator<Track> iterator;
-
     private boolean isShuffle = false;
     private boolean isPlaying = false;
 
     public Library() {
         this.tracks = new ArrayList<>();
-        // За замовчуванням - лінійний порядок
         this.iterator = new LinearIterator<>(this.tracks);
     }
 
     public void addTrack(Track track) {
         if (track != null && !tracks.contains(track)) {
             tracks.add(track);
-            // Оновлюємо ітератор, щоб він врахував нові дані
             updateIterator();
         }
     }
@@ -34,10 +29,6 @@ public class Library implements Playable {
         updateIterator();
     }
 
-    /**
-     * Фабричний метод для оновлення стратегії обходу.
-     * Тут лише Linear або Shuffle, без Repeat.
-     */
     private void updateIterator() {
         if (isShuffle) {
             this.iterator = new ShuffleIterator<>(this.tracks);
@@ -68,7 +59,6 @@ public class Library implements Playable {
     public int next() {
         if (iterator.hasNext()) {
             Track t = iterator.next();
-            // Повертаємо ID, оскільки інтерфейс Playable вимагає int
             return t != null ? t.getTrackID() : -1;
         }
         return -1;
@@ -87,7 +77,7 @@ public class Library implements Playable {
     public void setShuffle(boolean enable) {
         if (this.isShuffle != enable) {
             this.isShuffle = enable;
-            updateIterator(); // Зміна режиму змінює тип ітератора
+            updateIterator(); 
         }
     }
 
@@ -109,7 +99,6 @@ public class Library implements Playable {
 
     @Override
     public void setCurrentTrack(int trackId) {
-        // Шукаємо трек у списку за ID
         Track foundTrack = tracks.stream()
                 .filter(t -> t.getTrackID() == trackId)
                 .findFirst()

@@ -3,7 +3,7 @@ package com.example.kursova.common.patterns.memento;
 import java.io.Serializable;
 
 public class PlayerMemento implements Serializable {
-    private static final long serialVersionUID = 1L; // <--- Бажано додати ID версії
+    private static final long serialVersionUID = 1L; 
 
     private final int volume;
     private final boolean isShuffle;
@@ -29,6 +29,5 @@ public class PlayerMemento implements Serializable {
     public int getCurrentTrackId() { return currentTrackId; }
     public int getSourceType() { return sourceType; }
     public int getSourceId() { return sourceId; }
-
-    public double getCurrentTime() { return currentTime; } // <-- НОВИЙ ГЕТТЕР
+    public double getCurrentTime() { return currentTime; } 
 }

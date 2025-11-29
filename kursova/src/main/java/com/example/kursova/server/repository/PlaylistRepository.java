@@ -53,7 +53,6 @@ public class PlaylistRepository implements IRepository<Playlist> {
     @Override
     public void update(Playlist playlist) {
         if (playlist.getPlaylistID() == 0) {
-            // --- INSERT ---
             String sql = "INSERT INTO playlists(name) VALUES(?)";
             try (Connection conn = DatabaseConnection.connect();
                  PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -64,16 +63,16 @@ public class PlaylistRepository implements IRepository<Playlist> {
                 if (affectedRows > 0) {
                     try (ResultSet rs = pstmt.getGeneratedKeys()) {
                         if (rs.next()) {
-                            playlist.setPlaylistID(rs.getInt(1)); // Отримуємо ID
+                            playlist.setPlaylistID(rs.getInt(1)); 
                         }
                     }
                 }
-                // Зберігаємо треки для нового плейлиста (хоча він зазвичай порожній при створенні)
+                
                 savePlaylistTracks(playlist, conn);
 
             } catch (SQLException e) { e.printStackTrace(); }
         } else {
-            // --- UPDATE ---
+            
             String sql = "UPDATE playlists SET name=? WHERE id=?";
             try (Connection conn = DatabaseConnection.connect()) {
                 try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -81,13 +80,13 @@ public class PlaylistRepository implements IRepository<Playlist> {
                     pstmt.setInt(2, playlist.getPlaylistID());
                     pstmt.executeUpdate();
                 }
-                // Оновлюємо зв'язки треків
+                
                 savePlaylistTracks(playlist, conn);
             } catch (SQLException e) { e.printStackTrace(); }
         }
     }
 
-    // Виніс логіку збереження треків в окремий метод для чистоти
+    
     private void savePlaylistTracks(Playlist playlist, Connection conn) throws SQLException {
         String sqlDelete = "DELETE FROM playlist_tracks WHERE playlist_id = ?";
         try (PreparedStatement pstmt = conn.prepareStatement(sqlDelete)) {
@@ -136,7 +135,6 @@ public class PlaylistRepository implements IRepository<Playlist> {
     public List<Playlist> findPlaylistsByUserId(int userId) {
         List<Playlist> playlists = new ArrayList<>();
         String sql = "SELECT p.* FROM playlists p JOIN users_playlists up ON p.id = up.playlist_id WHERE up.user_id = ?";
-        // ... реалізація аналогічна TrackRepository ...
         return playlists;
     }
 
@@ -154,8 +152,6 @@ public class PlaylistRepository implements IRepository<Playlist> {
         }
     }
 
-    // У файлі com/example/kursova/repository/PlaylistRepository.java
-
     public List<Playlist> findAllByUserId(int userId) {
         List<Playlist> playlists = new ArrayList<>();
         String sql = "SELECT p.id, p.name " +
@@ -171,7 +167,6 @@ public class PlaylistRepository implements IRepository<Playlist> {
 
             while (rs.next()) {
                 Playlist pl = new Playlist(rs.getInt("id"), rs.getString("name"));
-                // Важливо: завантажуємо список треків для цього плейлиста
                 loadPlaylistTracks(pl, conn);
                 playlists.add(pl);
             }

@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserRepository implements IRepository<User> {
-
     @Override
     public User findByID(int id) {
         String sql = "SELECT id, name, email, password FROM users WHERE id = ?";
@@ -27,7 +26,6 @@ public class UserRepository implements IRepository<User> {
         return null;
     }
 
-    // Метод для пошуку по Email
     public User findByEmail(String email) {
         String sql = "SELECT id, name, email, password FROM users WHERE email = ?";
         try (Connection conn = DatabaseConnection.connect();
@@ -55,9 +53,8 @@ public class UserRepository implements IRepository<User> {
         return users;
     }
 
-    // ВАЖЛИВО: Цей метод часто є причиною помилки
     public int createUser(User user) {
-        // Ми НЕ передаємо 'id' (він AUTOINCREMENT) і НЕ передаємо 'settings' (ми їх видалили)
+        
         String sql = "INSERT INTO users(name, email, password) VALUES(?, ?, ?)";
 
         try (Connection conn = DatabaseConnection.connect();
@@ -66,16 +63,14 @@ public class UserRepository implements IRepository<User> {
             pstmt.setString(1, user.getName());
             pstmt.setString(2, user.getEmail());
             pstmt.setString(3, user.getPassword());
-
             int affectedRows = pstmt.executeUpdate();
 
             if (affectedRows > 0) {
                 try (ResultSet rs = pstmt.getGeneratedKeys()) {
-                    if (rs.next()) return rs.getInt(1); // Повертаємо новий ID
+                    if (rs.next()) return rs.getInt(1); 
                 }
             }
         } catch (SQLException e) {
-            // Якщо тут помилка - у консолі буде причина, а метод поверне -1
             e.printStackTrace();
         }
         return -1;
@@ -115,7 +110,7 @@ public class UserRepository implements IRepository<User> {
                 rs.getString("name"),
                 rs.getString("email"),
                 rs.getString("password")
-                // settings видалено, тут його бути не повинно
+                
         );
     }
 }
